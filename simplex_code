@@ -1,5 +1,14 @@
 import numpy as np
 
+
+def basic_nbasic_indexes(zvector: np.ndarray, constraints: np.ndarray):
+    basic_indexes = np.array(
+        [ind for ind in range(constraints.shape[1]) if len(np.nonzero(zvector[ind] + constraints[:, ind])[0]) == 1])
+    non_basic_indexes = np.array([x for x in range(constraints.shape[1]) if x not in basic_indexes])
+    C_vector = np.array([0 for x in range(len(basic_indexes))])
+    return basic_indexes, non_basic_indexes, C_vector
+
+
 def simplex_method(zvector: np.ndarray,
                    constraints: np.ndarray,
                    bvector: np.ndarray,
@@ -44,4 +53,3 @@ PsMatrix = np.array([[18, 15, 12, 1, 0, 0],
 bvector = np.array([360, 192, 180])
 
 print(simplex_method(zvector, PsMatrix, bvector, *basic_nbasic_indexes(zvector, PsMatrix)))
-
