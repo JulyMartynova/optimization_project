@@ -35,9 +35,3 @@ zvector = [1, 2, 3, 0]
 constraints = [[2, 4, 9, 1], [-1, -2, -3, 0]]
 bvector = [5, -10]
 
-
-# Expected results of optimization
-expected_profit = 22
-expected_plates = 4
-expected_mugs = 0
-expected_teapots = 2
