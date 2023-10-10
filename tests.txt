@@ -35,3 +35,9 @@ zvector = [1, 2, 3, 0]
 constraints = [[2, 4, 9, 1], [-1, -2, -3, 0]]
 bvector = [5, -10]
 
+Test 6:
+# Degenerate solution
+zvector = [1, 2, 3, 0, 1, 2]
+constraints = [[2, 4, 9, 1, 0, 1], [1, 3, 5, 1, 2, 1], [0, 1, 0, 3, 1, 2]]
+bvector = [5, 8, 2]
+expected_result = 3
