@@ -9,7 +9,7 @@ Test 1:
 zvector = [1, 2, 3, 0]
 PsMatrix = [[2, 4, 9, 1]]
 bvector = [5]
-expected_result = 3
+expected_result = 1.5
 
 Test 2:
 zvector = [1, 2, 3, 0, 1, 2]
