@@ -17,14 +17,19 @@ def simplex_method(zvector: np.ndarray,
         best = C_vector.dot(X_b)
         entering_coefs = C_vector.dot(inv_B_matrix).dot(left_out_matrix) - np.array(
             [zvector[ind] for ind in non_basic_indexes])
+        # entering vector represents the non-basic variable
+        # index in entering_coefs maps to non_basic_indexes index
+        # So, we can take the non-basic variable's index from non_basic_indexes, using the same entering_index
         entering_index = np.argmin(entering_coefs)
         entering_value = entering_coefs[entering_index]
-        if entering_value > 0:
+        if entering_value >= 0:
             break
+        # To find the leaving vector we will have to perform element wise division of X_{B_i} by V_i^{-1} P_{ent}
         divisors = inv_B_matrix.dot(left_out_matrix[:, entering_index])
         coefficients = np.divide(X_b, divisors)
         leaving_index = np.where(coefficients > 0, coefficients, np.inf).argmin()
         C_vector[leaving_index] = zvector[non_basic_indexes[entering_index]]
+        # Swap the entering index for non-basic variable with leaving index for basic variable
         temp = non_basic_indexes[entering_index]
         non_basic_indexes[entering_index] = basic_indexes[leaving_index]
         basic_indexes[leaving_index] = temp
@@ -39,3 +44,4 @@ PsMatrix = np.array([[18, 15, 12, 1, 0, 0],
 bvector = np.array([360, 192, 180])
 
 print(simplex_method(zvector, PsMatrix, bvector, *basic_nbasic_indexes(zvector, PsMatrix)))
+
