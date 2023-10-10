@@ -2,15 +2,34 @@ import numpy as np
 
 
 def basic_nbasic_indexes(zvector: np.ndarray, constraints: np.ndarray):
+    """
+    Finds indexes of basic and non-basic variable columns and forms the C_vector accordingly
+    :param zvector: function we want to maximize / minimize
+    :param constraints: constraints for our problem
+    :return: (basic_indexes, non_basic_indexes, C_vector)
+    """
     # zvector:     [1, 2, 3, 0]
     # constraints: [2, 4, 9, 1]
     # -> basic_indexes = [3]
-    basic_indexes = np.array(
-        [ind for ind in range(constraints.shape[1]) if len(np.nonzero(zvector[ind] + constraints[:, ind])[0]) == 1])
+    if zvector.ndim != 1 or zvector.shape[0] != constraints.shape[1]:
+        raise ValueError("The method is not applicable.")
+
+    if constraints.ndim != 2:
+        raise ValueError("The method is not applicable.")
+    # Concatenate zvector to constraints to create the tableau
+    tableau = np.vstack((zvector, constraints))
+
+    # Find the indices of the columns that have only one non-zero value
+    counts = np.count_nonzero(tableau, axis=0)
+    basic_indexes = np.where(counts == 1)[0]
+    # Check if the number of basic variables is equal to the number of constraints
     if constraints.shape[0] != len(basic_indexes):
-        raise "Not applicable"
-    non_basic_indexes = np.array([x for x in range(constraints.shape[1]) if x not in basic_indexes])
-    C_vector = np.array([0 for x in range(len(basic_indexes))])
+        raise ValueError("The method is not applicable.")
+    # Find the indices of the non-basic variable columns
+    non_basic_indexes = np.setdiff1d(np.arange(tableau.shape[1]), basic_indexes)
+
+    # Form the C_vector
+    C_vector = tableau[0, basic_indexes]
     return basic_indexes, non_basic_indexes, C_vector
 
 
@@ -19,48 +38,91 @@ def simplex_method(zvector: np.ndarray,
                    bvector: np.ndarray,
                    basic_indexes: np.ndarray,
                    non_basic_indexes: np.ndarray,
-                   C_vector: np.ndarray,
-                   maximize=True):
-    best = 0
+                   C_vector: np.ndarray):
+    """
+    Solves a linear programming problem using the simplex method
+    :param zvector: function we want to maximize / minimize
+    :param constraints: constraints for our problem
+    :param bvector: right-hand side of the constraints
+    :param basic_indexes: indices of the basic variables
+    :param non_basic_indexes: indices of the non-basic variables
+    :param C_vector: coefficients of the basic variables in the objective function
+    :return: optimal value of the objective function and coefficients
+    """
+
+    if bvector.shape[0] != constraints.shape[0]:
+        raise ValueError("The method is not applicable.")
+
+
     while True:
-        B_matrix = np.array([[constraints[row, ind] for ind in basic_indexes] for row in range(constraints.shape[0])])
-        left_out_matrix = np.array(
-            [[constraints[row, ind] for ind in non_basic_indexes] for row in range(constraints.shape[0])])
+        B_matrix = constraints[:, basic_indexes]
+        left_out_matrix = constraints[:, non_basic_indexes]
         inv_B_matrix = np.linalg.inv(B_matrix)
         X_b = inv_B_matrix.dot(bvector)
         best = C_vector.dot(X_b)
-        entering_coefs = C_vector.dot(inv_B_matrix).dot(left_out_matrix) - np.array(
-            [zvector[ind] for ind in non_basic_indexes])
-        # entering vector represents the non-basic variable
-        # index in entering_coefs maps to non_basic_indexes index
-        # So, we can take the non-basic variable's index from non_basic_indexes, using the same entering_index
+        entering_coefs = C_vector.dot(inv_B_matrix).dot(left_out_matrix) - zvector[non_basic_indexes]
         entering_index = np.argmin(entering_coefs)
         entering_value = entering_coefs[entering_index]
         if entering_value >= 0:
             break
-        # To find the leaving vector we will have to perform element wise division of X_{B_i} by V_i^{-1} P_{ent}
         divisors = inv_B_matrix.dot(left_out_matrix[:, entering_index])
         coefficients = np.divide(X_b, divisors)
         leaving_index = np.where(coefficients > 0, coefficients, np.inf).argmin()
+        if np.isinf(coefficients[leaving_index]):
+            break
         C_vector[leaving_index] = zvector[non_basic_indexes[entering_index]]
-        # Swap the entering index for non-basic variable with leaving index for basic variable
         temp = non_basic_indexes[entering_index]
         non_basic_indexes[entering_index] = basic_indexes[leaving_index]
         basic_indexes[leaving_index] = temp
-    return best
+    coefficients = np.zeros(zvector.shape[0])
+    coefficients[basic_indexes] = X_b
+    return best, coefficients.tolist()
 
 
-# user input for zvector
-zvector = np.array([float(input(f"Enter value for zvector[{i}]: ")) for i in range(6)])
+zvector = np.array([9, 10, 16, 0, 0, 0])
 
-# user input for PsMatrix
-PsMatrix = np.array([[float(input(f"Enter value for PsMatrix[{i}][{k}]: ")) for k in range(6)] for i in range(3)])
+PsMatrix = np.array([[18, 15, 12, 1, 0, 0],
+                     [6, 4, 8, 0, 1, 0],
+                     [5, 3, 3, 0, 0, 1]])
+bvector = np.array([360, 192, 180])
 
-# user input for bvector
-bvector = np.array([float(input(f"Enter value for bvector[{i}]: ")) for i in range(3)])
 
-print("zvector:", zvector)
-print("PsMatrix:", PsMatrix)
-print("bvector:", bvector)
+# print(simplex_method(zvector, PsMatrix, bvector, *basic_nbasic_indexes(zvector, PsMatrix)))
+from scipy.optimize import linprog
+def generate_test_examples(num_variables, num_constraints):
+    # Generate random coefficients for objective function
+    zvector = np.random.randint(10, 100, size=num_variables)
 
-print("Answer:", simplex_method(zvector, PsMatrix, bvector, *basic_nbasic_indexes(zvector, PsMatrix)))
+    # Generate random coefficients for constraints
+    constraints = np.random.randint(10, 100, size=(num_constraints, num_variables))
+    identity_matrix = np.identity(num_constraints)
+
+
+    # Generate random coefficients for bvector
+    bvector = np.random.randint(10, 100, size=num_constraints)
+    # Calculate expected maximum value
+    res = linprog([-1*x for x in zvector.tolist()], A_ub=constraints.tolist(), b_ub=bvector.tolist(), method='highs')
+
+    # Print the optimal value and solution
+    zvector = np.append(zvector, np.zeros(num_constraints))
+    constraints = np.hstack((constraints, identity_matrix))
+
+    return zvector, constraints, bvector, res.x, res.fun
+
+
+for i in range(100):
+
+    zvector, constraints, bvector, res_x, res_fun = generate_test_examples(3, 3)
+    try:
+        basic, nonbasic, cvector = basic_nbasic_indexes(zvector, constraints)
+        try:
+            hm_fun, hm_x = simplex_method(zvector, constraints, bvector, basic, nonbasic, cvector)
+            if res_fun is None or res_fun + hm_fun >= 1e-5:
+                print("Missmatch 1:\n", zvector, "\n", constraints, bvector)
+                print(res_fun, hm_fun)
+        except:
+            if res_fun is not None:
+                print("Missmatch 2:\n", zvector, "\n", constraints, bvector)
+                print(res_fun)
+    except:
+        print("Initial step")
