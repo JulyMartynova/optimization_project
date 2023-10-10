@@ -2,8 +2,13 @@ import numpy as np
 
 
 def basic_nbasic_indexes(zvector: np.ndarray, constraints: np.ndarray):
+    # zvector:     [1, 2, 3, 0]
+    # constraints: [2, 4, 9, 1]
+    # -> basic_indexes = [3]
     basic_indexes = np.array(
         [ind for ind in range(constraints.shape[1]) if len(np.nonzero(zvector[ind] + constraints[:, ind])[0]) == 1])
+    if constraints.shape[0] != len(basic_indexes):
+        raise "Not applicable"
     non_basic_indexes = np.array([x for x in range(constraints.shape[1]) if x not in basic_indexes])
     C_vector = np.array([0 for x in range(len(basic_indexes))])
     return basic_indexes, non_basic_indexes, C_vector
