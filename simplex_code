@@ -54,6 +54,7 @@ def simplex_method(zvector: np.ndarray,
         raise ValueError("The method is not applicable.")
 
 
+
     while True:
         B_matrix = constraints[:, basic_indexes]
         left_out_matrix = constraints[:, non_basic_indexes]
@@ -66,7 +67,10 @@ def simplex_method(zvector: np.ndarray,
         if entering_value >= 0:
             break
         divisors = inv_B_matrix.dot(left_out_matrix[:, entering_index])
-        coefficients = np.divide(X_b, divisors)
+        coefficients = np.divide(X_b, divisors, where=divisors!=0)
+        coefficients[divisors == 0] = np.inf * np.sign(X_b[divisors == 0])
+        if np.all(coefficients <= 0):
+            raise ValueError("The method is not applicable.")
         leaving_index = np.where(coefficients > 0, coefficients, np.inf).argmin()
         if np.isinf(coefficients[leaving_index]):
             break
