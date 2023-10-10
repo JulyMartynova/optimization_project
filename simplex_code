@@ -19,12 +19,14 @@ def simplex_method(zvector: np.ndarray,
             [zvector[ind] for ind in non_basic_indexes])
         entering_index = np.argmin(entering_coefs)
         entering_value = entering_coefs[entering_index]
+        if entering_value > 0:
+            break
         divisors = inv_B_matrix.dot(left_out_matrix[:, entering_index])
         coefficients = np.divide(X_b, divisors)
         leaving_index = np.where(coefficients > 0, coefficients, np.inf).argmin()
-        C_vector[leaving_index] = zvector[non_basic_indexes[entering_value]]
+        C_vector[leaving_index] = zvector[non_basic_indexes[entering_index]]
         temp = non_basic_indexes[entering_index]
-        non_basic_indexes[entering_index] = basic_indexes[leaving_value]
+        non_basic_indexes[entering_index] = basic_indexes[leaving_index]
         basic_indexes[leaving_index] = temp
     return best
 
