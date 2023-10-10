@@ -63,4 +63,4 @@ print("zvector:", zvector)
 print("PsMatrix:", PsMatrix)
 print("bvector:", bvector)
 
-print("Answe:", simplex_method(zvector, PsMatrix, bvector, *basic_nbasic_indexes(zvector, PsMatrix)))
+print("Answer:", simplex_method(zvector, PsMatrix, bvector, *basic_nbasic_indexes(zvector, PsMatrix)))
