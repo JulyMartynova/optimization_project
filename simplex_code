@@ -1,0 +1,39 @@
+import numpy as np
+
+def simplex_method(zvector: np.ndarray,
+                   constraints: np.ndarray,
+                   bvector: np.ndarray,
+                   basic_indexes: np.ndarray,
+                   non_basic_indexes: np.ndarray,
+                   C_vector: np.ndarray,
+                   maximize=True):
+    best = 0
+    while True:
+        B_matrix = np.array([[constraints[row, ind] for ind in basic_indexes] for row in range(constraints.shape[0])])
+        left_out_matrix = np.array(
+            [[constraints[row, ind] for ind in non_basic_indexes] for row in range(constraints.shape[0])])
+        inv_B_matrix = np.linalg.inv(B_matrix)
+        X_b = inv_B_matrix.dot(bvector)
+        best = C_vector.dot(X_b)
+        entering_coefs = C_vector.dot(inv_B_matrix).dot(left_out_matrix) - np.array(
+            [zvector[ind] for ind in non_basic_indexes])
+        entering_index = np.argmin(entering_coefs)
+        entering_value = entering_coefs[entering_index]
+        divisors = inv_B_matrix.dot(left_out_matrix[:, entering_index])
+        coefficients = np.divide(X_b, divisors)
+        leaving_index = np.where(coefficients > 0, coefficients, np.inf).argmin()
+        C_vector[leaving_index] = zvector[non_basic_indexes[entering_value]]
+        temp = non_basic_indexes[entering_index]
+        non_basic_indexes[entering_index] = basic_indexes[leaving_value]
+        basic_indexes[leaving_index] = temp
+    return best
+
+
+zvector = np.array([9, 10, 16, 0, 0, 0])
+
+PsMatrix = np.array([[18, 15, 12, 1, 0, 0],
+                     [6, 4, 8, 0, 1, 0],
+                     [5, 3, 3, 0, 0, 1]])
+bvector = np.array([360, 192, 180])
+
+print(simplex_method(zvector, PsMatrix, bvector, *basic_nbasic_indexes(zvector, PsMatrix)))
