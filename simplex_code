@@ -50,11 +50,17 @@ def simplex_method(zvector: np.ndarray,
     return best
 
 
-zvector = np.array([9, 10, 16, 0, 0, 0])
+# user input for zvector
+zvector = np.array([float(input(f"Enter value for zvector[{i}]: ")) for i in range(6)])
 
-PsMatrix = np.array([[18, 15, 12, 1, 0, 0],
-                     [6, 4, 8, 0, 1, 0],
-                     [5, 3, 3, 0, 0, 1]])
-bvector = np.array([360, 192, 180])
+# user input for PsMatrix
+PsMatrix = np.array([[float(input(f"Enter value for PsMatrix[{i}][{k}]: ")) for k in range(6)] for i in range(3)])
 
-print(simplex_method(zvector, PsMatrix, bvector, *basic_nbasic_indexes(zvector, PsMatrix)))
+# user input for bvector
+bvector = np.array([float(input(f"Enter value for bvector[{i}]: ")) for i in range(3)])
+
+print("zvector:", zvector)
+print("PsMatrix:", PsMatrix)
+print("bvector:", bvector)
+
+print("Answe:", simplex_method(zvector, PsMatrix, bvector, *basic_nbasic_indexes(zvector, PsMatrix)))
