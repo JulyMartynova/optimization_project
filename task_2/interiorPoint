@@ -1,0 +1,95 @@
+import numpy as np
+
+np.random.seed(0)
+
+
+def get_random_point(constraints: np.ndarray, b_array: np.ndarray):
+    """
+    Given the equality constraints and corresponding b vector generates random point
+    :param constraints:
+    :param b_array:
+    :return: random point
+    """
+    point = np.zeros(constraints.shape[1])
+    # print(f"Constraints\n{constraints}")
+    # print(f"b_array\n{b_array}")
+    for var in range(constraints.shape[1] - 1):
+        # some_values = np.divide(b_array, constraints[:, var])
+        some_values = np.array(
+            [b_array[ind] / value for ind, value in enumerate(constraints[:, var]) if np.abs(value - 0) > 1e-5])
+        some_values = some_values[some_values > 0]
+        some_values = some_values[some_values != np.inf]
+        if some_values.size == 1:
+            point[var] = some_values[0]
+            b_array = b_array - constraints[:, var].dot(some_values[0])
+            continue
+        some_value = np.random.uniform(low=0, high=np.amin(some_values) * 3 / 4)
+        b_array = b_array - constraints[:, var].dot(some_value)
+        point[var] = some_value
+        # print(f"b_array\n{b_array + constraints.dot(point)}")
+        # print(f"point\n{point}\n===========================================================")
+    some_values = np.array(
+        [b_array[ind] / value for ind, value in enumerate(constraints[:, -1]) if np.abs(value - 0) > 1e-5])
+    some_value = np.amin(some_values[some_values > 0])
+    b_array = b_array - constraints[:, -1].dot(some_value)
+    point[-1] = some_value
+    # print(f"b_array\n{b_array + constraints.dot(point)}")
+    return point
+
+
+def interior_point_method(objective_function: np.ndarray, constraints: np.ndarray, initial_point: np.ndarray, rate=0.5,
+                          approximation=0.0001):
+    if objective_function.size != constraints.shape[1]:
+        raise "Dimension problem with objective function or constraints"
+
+    if initial_point.shape != objective_function.shape:
+        raise "Numbers of elements in objective function and in initial point are not equal"
+
+    if rate < 0:
+        raise "Rate is too low"
+    elif rate > 1:
+        raise "Rate is too high"
+
+    variables = initial_point
+    last_best = objective_function.dot(variables)
+    while True:
+        # print(f"Vars: {variables}")
+        D = np.diag(variables)
+        # print(f"D: {D}")
+        variables = np.ones(variables.shape)
+        # print(f"Vars: {variables}")
+        A = constraints.dot(D)
+        # print(f"A: {A}")
+        C = objective_function.dot(D)
+        # print(f"C: {C}")
+        P = np.eye(D.shape[0]) - A.T.dot(np.linalg.inv(A.dot(A.T))).dot(A)
+        # print(f"P: {P}")
+        C = P.dot(C)
+        # print(f"C: {C}")
+        max_v = np.amin(C)
+        if max_v >= 0:
+            raise "Something is wrong"
+        max_v = -max_v
+        # print(f"v: {max_v}")
+        variables = D.dot(variables + (rate / max_v) * C)
+        current_best = objective_function.dot(variables)
+        if np.abs(current_best - last_best) < approximation:
+            return (current_best, variables)
+        last_best = current_best
+        # print(current_best, variables)
+        # print("=============================================\n\n")
+
+
+C = np.array([1, 2, 0, 0])
+constraints = np.array([[1, 1, 1, 0], [2, 3, 0, 1]])
+r_point = get_random_point(constraints, np.array([5, 7]))
+print(interior_point_method(C, constraints, r_point, 0.9))
+
+# print(r_point)
+# print(constraints.dot(r_point))
+# print(C.dot(r_point))
+#
+# for i in range(10):
+#     C = np.random.randint(low=-10, high=10, size=4)
+#     constraints = np.random.randint(low=-3, high=10, size=(np.random.randint(low=2, high=10, size=1)[0], 4))
+#     print(constraints)
