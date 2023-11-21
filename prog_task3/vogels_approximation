@@ -43,6 +43,9 @@ def vogels_approximation_method(cost_matrix, supply, demand):
         elif demand[j] == 0:
             v[j] = cost_matrix[i, j] - u[i]
 
+    # Print the input parameter table
+    print_table(supply, demand, cost_matrix)
+
     return solution
 
 def print_table(supply, demand, costs):
@@ -54,17 +57,14 @@ def print_table(supply, demand, costs):
     print(demand, "\n")
 
 # Example usage
-supply = np.array([20, 30, 50])
-demand = np.array([30, 40, 30, 20])
-cost_matrix = np.array([[6, 8, 10, 9],
-                       [7, 9, 4, 11],
-                       [4, 7, 6, 8]])
+supply = np.array([30, 40, 30])
+demand = np.array([25, 45, 40])
+cost_matrix = np.array([[6, 8, 10], [7, 9, 4], [4, 7, 6]])
 
-# Check applicability and balance
+# Check applicability and balance, and print input parameter table
 result = vogels_approximation_method(cost_matrix, supply, demand)
 if isinstance(result, str):
     print(result)
 else:
-    print_table(supply, demand, cost_matrix)
     print("Initial Basic Feasible Solution:")
     print(result)
