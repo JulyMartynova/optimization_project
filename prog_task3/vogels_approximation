@@ -4,6 +4,14 @@ def vogels_approximation_method(cost_matrix, supply, demand):
     num_suppliers = len(supply)
     num_consumers = len(demand)
 
+    # Check if the method is applicable
+    if num_suppliers + num_consumers - 1 != np.sum(cost_matrix > 0):
+        return "The method is not applicable!"
+
+    # Check if the problem is balanced
+    if np.sum(supply) != np.sum(demand):
+        return "The problem is not balanced!"
+
     # Initialize the solution matrix and assign values to u and v
     solution = np.zeros((num_suppliers, num_consumers))
     u = np.zeros(num_suppliers)
@@ -37,14 +45,26 @@ def vogels_approximation_method(cost_matrix, supply, demand):
 
     return solution
 
+def print_table(supply, demand, costs):
+    print("Costs:")
+    print(costs, "\n")
+    print("Supply:")
+    print(supply, "\n")
+    print("Demand:")
+    print(demand, "\n")
+
 # Example usage
+supply = np.array([20, 30, 50])
+demand = np.array([30, 40, 30, 20])
 cost_matrix = np.array([[6, 8, 10, 9],
                        [7, 9, 4, 11],
                        [4, 7, 6, 8]])
 
-supply = np.array([20, 30, 50])
-demand = np.array([30, 40, 30, 20])
-
-initial_solution = vogels_approximation_method(cost_matrix, supply, demand)
-print("Initial Basic Feasible Solution:")
-print(initial_solution)
+# Check applicability and balance
+result = vogels_approximation_method(cost_matrix, supply, demand)
+if isinstance(result, str):
+    print(result)
+else:
+    print_table(supply, demand, cost_matrix)
+    print("Initial Basic Feasible Solution:")
+    print(result)
