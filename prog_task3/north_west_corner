@@ -1,0 +1,60 @@
+import numpy as np
+
+def north_west_corner(cost_matrix, supply, demand):
+    num_suppliers = len(supply)
+    num_consumers = len(demand)
+
+    # Check if the problem is balanced
+    if np.sum(supply) != np.sum(demand):
+        return "The problem is not balanced!"
+
+    # Check if the method is applicable
+    if num_suppliers + num_consumers - 1 != num_suppliers * num_consumers:
+        return "The method is not applicable!"
+
+    # Initialize the solution matrix
+    solution = np.zeros((num_suppliers, num_consumers))
+
+    # Initialize indices for suppliers and consumers
+    i, j = 0, 0
+
+    while i < num_suppliers and j < num_consumers:
+        # Find the minimum of supply[i] and demand[j]
+        min_supply_demand = min(supply[i], demand[j])
+
+        # Assign the minimum value to the current cell and update supply and demand
+        solution[i, j] = min_supply_demand
+        supply[i] -= min_supply_demand
+        demand[j] -= min_supply_demand
+
+        # Move to the next row or column based on which one is exhausted
+        if supply[i] == 0:
+            i += 1
+        elif demand[j] == 0:
+            j += 1
+
+    # Print the input parameter table
+    print_table(supply, demand, cost_matrix)
+
+    return solution
+
+def print_table(supply, demand, costs):
+    print("Costs:")
+    print(costs, "\n")
+    print("Supply:")
+    print(supply, "\n")
+    print("Demand:")
+    print(demand, "\n")
+
+# Updated example usage
+supply = np.array([30, 40, 30])
+    demand = np.array([20, 40, 40])
+    cost_matrix = np.array([[2, 3, 4], [3, 2, 5], [4, 3, 2]])
+
+# Check applicability and balance, and print input parameter table
+result = north_west_corner(cost_matrix, supply, demand)
+if isinstance(result, str):
+    print(result)
+else:
+    print("Initial Basic Feasible Solution:")
+    print(result)
