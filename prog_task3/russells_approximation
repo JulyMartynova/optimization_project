@@ -1,0 +1,71 @@
+import numpy as np
+
+
+def russells_approximation(supply, demand, costs):
+    if costs.shape != (supply.size, demand.size):
+        raise "The method is not applicable!"
+
+    if np.any(costs < 0):
+        raise "The method is not applicable!"
+
+    if np.sum(supply) != np.sum(demand):
+        raise "The problem is not balanced!"
+
+    supply_remaining = supply.copy()
+    demand_remaining = demand.copy()
+    allocation = np.zeros(costs.shape)
+    row_max = {row: costs[row, col] for row, col in enumerate(np.argmax(costs, axis=1)) if
+               allocation[row, col] == 0 and supply[row] > 0}
+
+    col_max = {col: costs[row, col] for col, row in enumerate(np.argmax(costs, axis=0)) if
+               allocation[row, col] == 0 and demand[col] > 0}
+
+    diffs = costs.copy()
+
+    for row, value in row_max.items():
+        diffs[row, :] -= value
+
+    for col, value in col_max.items():
+        diffs[:, col] -= value
+
+    while np.any(supply_remaining > 0) and np.any(demand_remaining > 0):
+        # print(diffs)
+        # Find the cell with the most negative delta
+        min_row, min_col = np.unravel_index(np.argmin(diffs), diffs.shape)
+
+        # Allocate minimum of supply[i] and demand[j]
+        quantity = min(supply_remaining[min_row], demand_remaining[min_col])
+        allocation[min_row, min_col] = quantity
+
+        # Update supply and demand
+        supply_remaining[min_row] -= quantity
+        demand_remaining[min_col] -= quantity
+
+        # Set the delta to zero
+        diffs[min_row, min_col] = 0
+
+    return allocation
+
+
+def print_table(supply, demand, costs):
+    print("Costs:")
+    print(costs, "\n")
+    print("Supply:")
+    print(supply, "\n")
+    print("Demand:")
+    print(demand, "\n")
+
+
+# Example usage
+supply = np.array([30, 30, 50])
+demand = np.array([30, 40, 30, 10])
+costs = np.array([[8, 6, 10, 6], [9, 7, 4, 7], [3, 14, 7, 10]])
+
+print_table(supply, demand, costs)
+
+result = russells_approximation(supply, demand, costs)
+print("Russell's approximation initial solution:")
+print(result)
+
+print(np.dot(costs.flatten(), result.flatten()))
+
